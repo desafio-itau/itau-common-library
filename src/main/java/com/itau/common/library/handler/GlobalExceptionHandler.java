@@ -50,101 +50,38 @@ public class GlobalExceptionHandler {
             BaseException ex,
             HttpServletRequest request) {
 
-        log.warn("Erro baseado em constants: {} - {}", ex.getErrorConstant().getCodigo(), ex.getMessage());
+        try {
+            String tipoErro = ex.getClass().getSimpleName();
 
-        SimpleErrorResponse error = SimpleErrorResponse.builder()
-                .erro(ex.getErrorConstant().getMensagem())
-                .codigo(ex.getErrorConstant().getCodigo())
-                .build();
+            log.info("Tratando BaseException: tipo={}, errorConstant={}",
+                    tipoErro,
+                    ex.getErrorConstant() != null ? ex.getErrorConstant().getCodigo() : "NULL");
 
-        return ResponseEntity
-                .status(ex.getErrorConstant().getCodigoHTTP())
-                .body(error);
-    }
+            if (ex.getErrorConstant() == null) {
+                log.error("ERRO: errorConstant é null na exception {}", tipoErro, ex);
+                throw new IllegalStateException("ErrorConstant não pode ser null");
+            }
 
-    @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<SimpleErrorResponse> handleResourceNotFoundException(
-            RecursoNaoEncontradoException ex,
-            HttpServletRequest request) {
+            if (ex.getErrorConstant().getCodigoHTTP() >= 500) {
+                log.error("{}: {} - {}", tipoErro, ex.getErrorConstant().getCodigo(), ex.getMessage(), ex);
+            } else {
+                log.warn("{}: {} - {}", tipoErro, ex.getErrorConstant().getCodigo(), ex.getMessage());
+            }
 
-        log.warn("Recurso não encontrado: {}", ex.getMessage());
+            SimpleErrorResponse error = SimpleErrorResponse.builder()
+                    .erro(ex.getErrorConstant().getMensagem())
+                    .codigo(ex.getErrorConstant().getCodigo())
+                    .build();
 
-        SimpleErrorResponse error = SimpleErrorResponse.builder()
-                .erro(ex.getErrorConstant().getMensagem())
-                .codigo(ex.getErrorConstant().getCodigo())
-                .build();
+            return ResponseEntity
+                    .status(ex.getErrorConstant().getCodigoHTTP())
+                    .body(error);
 
-        return ResponseEntity
-                .status(ex.getErrorConstant().getCodigoHTTP())
-                .body(error);
-    }
-
-    @ExceptionHandler(NegocioException.class)
-    public ResponseEntity<SimpleErrorResponse> handleBusinessException(
-            NegocioException ex,
-            HttpServletRequest request) {
-
-        log.warn("Erro de negócio: {}", ex.getMessage());
-
-        SimpleErrorResponse error = SimpleErrorResponse.builder()
-                .erro(ex.getErrorConstant().getMensagem())
-                .codigo(ex.getErrorConstant().getCodigo())
-                .build();
-
-        return ResponseEntity
-                .status(ex.getErrorConstant().getCodigoHTTP())
-                .body(error);
-    }
-
-    @ExceptionHandler(ConflitoException.class)
-    public ResponseEntity<SimpleErrorResponse> handleConflictException(
-            ConflitoException ex,
-            HttpServletRequest request) {
-
-        log.warn("Erro de conflito: {}", ex.getMessage());
-
-        SimpleErrorResponse error = SimpleErrorResponse.builder()
-                .erro(ex.getErrorConstant().getMensagem())
-                .codigo(ex.getErrorConstant().getCodigo())
-                .build();
-
-        return ResponseEntity
-                .status(ex.getErrorConstant().getCodigoHTTP())
-                .body(error);
-    }
-
-    @ExceptionHandler(CredenciaisInvalidasException.class)
-    public ResponseEntity<SimpleErrorResponse> handleBadCredentialsException(
-            CredenciaisInvalidasException ex,
-            HttpServletRequest request) {
-
-        log.warn("Credenciais inválidas: {}", ex.getMessage());
-
-        SimpleErrorResponse error = SimpleErrorResponse.builder()
-                .erro(ex.getErrorConstant().getMensagem())
-                .codigo(ex.getErrorConstant().getCodigo())
-                .build();
-
-        return ResponseEntity
-                .status(ex.getErrorConstant().getCodigoHTTP())
-                .body(error);
-    }
-
-    @ExceptionHandler(ServicoIndisponivelException.class)
-    public ResponseEntity<SimpleErrorResponse> handleServiceUnavailableException(
-            ServicoIndisponivelException ex,
-            HttpServletRequest request) {
-
-        log.error("Serviço indisponível: {}", ex.getMessage());
-
-        SimpleErrorResponse error = SimpleErrorResponse.builder()
-                .erro(ex.getErrorConstant().getMensagem())
-                .codigo(ex.getErrorConstant().getCodigo())
-                .build();
-
-        return ResponseEntity
-                .status(ex.getErrorConstant().getCodigoHTTP())
-                .body(error);
+        } catch (Exception e) {
+            log.error("ERRO AO PROCESSAR BaseException", e);
+            log.error("Exception original:", ex);
+            throw e;
+        }
     }
 
     @ExceptionHandler(Exception.class)

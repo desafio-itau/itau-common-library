@@ -17,7 +17,7 @@
 	</distributionManagement>
 	<groupId>com.itau</groupId>
 	<artifactId>common.library</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.5</version>
 	<name>Biblioteca Comum para os Microsservicos</name>
 	<description>Biblioteca Comum para os Microsserviços</description>
 	<url/>
