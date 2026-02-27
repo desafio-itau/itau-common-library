@@ -1,95 +1,105 @@
 package com.itau.common.library.handler;
 
-import com.itau.common.library.exception.*;
+import com.itau.common.library.constants.Constants;
+import com.itau.common.library.exception.ConflitoException;
+import com.itau.common.library.exception.NegocioException;
+import com.itau.common.library.exception.RecursoNaoEncontradoException;
+import com.itau.common.library.exception.ServicoIndisponivelException;
 import com.itau.common.library.response.ErrorResponse;
-import com.itau.common.library.response.SimpleErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
-            MethodArgumentNotValidException ex,
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            RecursoNaoEncontradoException ex,
             HttpServletRequest request) {
 
-        log.warn("Erro de validação: {}", ex.getMessage());
+        log.warn("Recurso não encontrado: {}", ex.getMessage());
 
-        List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(this::mapFieldError)
-                .toList();
+        Constants constant = Constants.findConstantByCode(ex.getMessage());
 
         ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation Error")
-                .message("Erro de validação nos campos")
-                .path(request.getRequestURI())
-                .fieldErrors(fieldErrors)
+                .erro(constant.getMensagem())
+                .codigo(constant.getCodigo())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(NegocioException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            NegocioException ex,
+            HttpServletRequest request) {
+
+        log.warn("Erro de negócio: {}", ex.getMessage());
+
+        Constants constant = Constants.findConstantByCode(ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .erro(constant.getMensagem())
+                .codigo(constant.getCodigo())
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<SimpleErrorResponse> handleBaseException(
-            BaseException ex,
+    @ExceptionHandler(ConflitoException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(
+            ConflitoException ex,
             HttpServletRequest request) {
 
-        try {
-            String tipoErro = ex.getClass().getSimpleName();
+        log.warn("Erro de conflito: {}", ex.getMessage());
 
-            log.info("Tratando BaseException: tipo={}, errorConstant={}",
-                    tipoErro,
-                    ex.getErrorConstant() != null ? ex.getErrorConstant().getCodigo() : "NULL");
+        Constants constant = Constants.findConstantByCode(ex.getMessage());
 
-            if (ex.getErrorConstant() == null) {
-                log.error("ERRO: errorConstant é null na exception {}", tipoErro, ex);
-                throw new IllegalStateException("ErrorConstant não pode ser null");
-            }
+        ErrorResponse error = ErrorResponse.builder()
+                .erro(constant.getMensagem())
+                .codigo(constant.getCodigo())
+                .build();
 
-            if (ex.getErrorConstant().getCodigoHTTP() >= 500) {
-                log.error("{}: {} - {}", tipoErro, ex.getErrorConstant().getCodigo(), ex.getMessage(), ex);
-            } else {
-                log.warn("{}: {} - {}", tipoErro, ex.getErrorConstant().getCodigo(), ex.getMessage());
-            }
-
-            SimpleErrorResponse error = SimpleErrorResponse.builder()
-                    .erro(ex.getErrorConstant().getMensagem())
-                    .codigo(ex.getErrorConstant().getCodigo())
-                    .build();
-
-            return ResponseEntity
-                    .status(ex.getErrorConstant().getCodigoHTTP())
-                    .body(error);
-
-        } catch (Exception e) {
-            log.error("ERRO AO PROCESSAR BaseException", e);
-            log.error("Exception original:", ex);
-            throw e;
-        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    private ErrorResponse.FieldError mapFieldError(FieldError fieldError) {
-        return ErrorResponse.FieldError.builder()
-                .field(fieldError.getField())
-                .message(fieldError.getDefaultMessage())
-                .rejectedValue(fieldError.getRejectedValue())
+    @ExceptionHandler(ServicoIndisponivelException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailableException(
+            ServicoIndisponivelException ex,
+            HttpServletRequest request) {
+
+        log.error("Serviço indisponível: {}", ex.getMessage());
+
+        Constants constant = Constants.findConstantByCode(ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .erro(constant.getMensagem())
+                .codigo(constant.getCodigo())
                 .build();
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(
+            Exception ex,
+            HttpServletRequest request) {
+
+        log.error("Erro interno do servidor: {}", ex.getMessage());
+
+        Constants constant = Constants.findConstantByCode(ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .erro(constant.getMensagem())
+                .codigo(constant.getCodigo())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
 

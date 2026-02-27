@@ -25,4 +25,13 @@ public enum Constants {
         this.mensagem = mensagem;
         this.codigoHTTP = codigoHTTP;
     }
+
+    public static Constants findConstantByCode(String code) {
+        for (Constants constant : Constants.values()) {
+            if (constant.getCodigo().equals(code)) {
+                return constant;
+            }
+        }
+        throw new IllegalArgumentException("Código de erro não encontrado: " + code);
+    }
 }
