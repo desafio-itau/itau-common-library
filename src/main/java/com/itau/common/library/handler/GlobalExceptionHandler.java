@@ -84,24 +84,6 @@ public class GlobalExceptionHandler {
         }
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex,
-            HttpServletRequest request) {
-
-        log.error("Erro interno do servidor", ex);
-
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("Ocorreu um erro interno no servidor")
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
-
     private ErrorResponse.FieldError mapFieldError(FieldError fieldError) {
         return ErrorResponse.FieldError.builder()
                 .field(fieldError.getField())
