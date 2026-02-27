@@ -3,11 +3,10 @@ package com.itau.common.library.generic;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.UUID;
 
 public interface ControllerGenerico {
 
-    default URI gerarHeaderLocation(UUID id) {
+    default URI gerarHeaderLocation(Long id) {
         return ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
