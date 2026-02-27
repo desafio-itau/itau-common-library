@@ -1,7 +1,13 @@
 package com.itau.common.library.exception;
 
-public class CredenciaisInvalidasException extends RuntimeException {
-    public CredenciaisInvalidasException(String message) {
-        super(message);
+import com.itau.common.library.constants.Constants;
+
+public class CredenciaisInvalidasException extends BaseException {
+    public CredenciaisInvalidasException(Constants errorConstant) {
+        super(errorConstant);
+    }
+
+    public CredenciaisInvalidasException(Constants errorConstant, Throwable cause) {
+        super(errorConstant, cause);
     }
 }

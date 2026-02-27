@@ -1,11 +1,13 @@
 package com.itau.common.library.exception;
 
-public class ServicoIndisponivelException extends RuntimeException {
-    public ServicoIndisponivelException(String message) {
-        super(message);
+import com.itau.common.library.constants.Constants;
+
+public class ServicoIndisponivelException extends BaseException {
+    public ServicoIndisponivelException(Constants errorConstant) {
+        super(errorConstant);
     }
     
-    public ServicoIndisponivelException(String message, Throwable cause) {
-        super(message, cause);
+    public ServicoIndisponivelException(Constants errorConstant, Throwable cause) {
+        super(errorConstant, cause);
     }
 }

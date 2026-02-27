@@ -2,6 +2,7 @@ package com.itau.common.library.handler;
 
 import com.itau.common.library.exception.*;
 import com.itau.common.library.response.ErrorResponse;
+import com.itau.common.library.response.SimpleErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(this::mapFieldError)
-                .collect(Collectors.toList());
+                .toList();
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -44,130 +45,106 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<SimpleErrorResponse> handleBaseException(
+            BaseException ex,
+            HttpServletRequest request) {
+
+        log.warn("Erro baseado em constants: {} - {}", ex.getErrorConstant().getCodigo(), ex.getMessage());
+
+        SimpleErrorResponse error = SimpleErrorResponse.builder()
+                .erro(ex.getErrorConstant().getMensagem())
+                .codigo(ex.getErrorConstant().getCodigo())
+                .build();
+
+        return ResponseEntity
+                .status(ex.getErrorConstant().getCodigoHTTP())
+                .body(error);
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+    public ResponseEntity<SimpleErrorResponse> handleResourceNotFoundException(
             RecursoNaoEncontradoException ex,
             HttpServletRequest request) {
 
         log.warn("Recurso não encontrado: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Not Found")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
+        SimpleErrorResponse error = SimpleErrorResponse.builder()
+                .erro(ex.getErrorConstant().getMensagem())
+                .codigo(ex.getErrorConstant().getCodigo())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity
+                .status(ex.getErrorConstant().getCodigoHTTP())
+                .body(error);
     }
 
     @ExceptionHandler(NegocioException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(
+    public ResponseEntity<SimpleErrorResponse> handleBusinessException(
             NegocioException ex,
             HttpServletRequest request) {
 
         log.warn("Erro de negócio: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Business Error")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
+        SimpleErrorResponse error = SimpleErrorResponse.builder()
+                .erro(ex.getErrorConstant().getMensagem())
+                .codigo(ex.getErrorConstant().getCodigo())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
-    @ExceptionHandler(NaoAutorizadoException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorizedException(
-            NaoAutorizadoException ex,
-            HttpServletRequest request) {
-
-        log.warn("Erro de autenticação: {}", ex.getMessage());
-
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error("Unauthorized")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-    }
-
-    @ExceptionHandler(ProibidoException.class)
-    public ResponseEntity<ErrorResponse> handleForbiddenException(
-            ProibidoException ex,
-            HttpServletRequest request) {
-
-        log.warn("Erro de autorização: {}", ex.getMessage());
-
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.FORBIDDEN.value())
-                .error("Forbidden")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        return ResponseEntity
+                .status(ex.getErrorConstant().getCodigoHTTP())
+                .body(error);
     }
 
     @ExceptionHandler(ConflitoException.class)
-    public ResponseEntity<ErrorResponse> handleConflictException(
+    public ResponseEntity<SimpleErrorResponse> handleConflictException(
             ConflitoException ex,
             HttpServletRequest request) {
 
         log.warn("Erro de conflito: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error("Conflict Error")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
+        SimpleErrorResponse error = SimpleErrorResponse.builder()
+                .erro(ex.getErrorConstant().getMensagem())
+                .codigo(ex.getErrorConstant().getCodigo())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        return ResponseEntity
+                .status(ex.getErrorConstant().getCodigoHTTP())
+                .body(error);
     }
 
     @ExceptionHandler(CredenciaisInvalidasException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException(
+    public ResponseEntity<SimpleErrorResponse> handleBadCredentialsException(
             CredenciaisInvalidasException ex,
             HttpServletRequest request) {
 
         log.warn("Credenciais inválidas: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error("Bad Credentials")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
+        SimpleErrorResponse error = SimpleErrorResponse.builder()
+                .erro(ex.getErrorConstant().getMensagem())
+                .codigo(ex.getErrorConstant().getCodigo())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        return ResponseEntity
+                .status(ex.getErrorConstant().getCodigoHTTP())
+                .body(error);
     }
 
     @ExceptionHandler(ServicoIndisponivelException.class)
-    public ResponseEntity<ErrorResponse> handleServiceUnavailableException(
+    public ResponseEntity<SimpleErrorResponse> handleServiceUnavailableException(
             ServicoIndisponivelException ex,
             HttpServletRequest request) {
 
         log.error("Serviço indisponível: {}", ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .error("Service Unavailable")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
+        SimpleErrorResponse error = SimpleErrorResponse.builder()
+                .erro(ex.getErrorConstant().getMensagem())
+                .codigo(ex.getErrorConstant().getCodigo())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+        return ResponseEntity
+                .status(ex.getErrorConstant().getCodigoHTTP())
+                .body(error);
     }
 
     @ExceptionHandler(Exception.class)

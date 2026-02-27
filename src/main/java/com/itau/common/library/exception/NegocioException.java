@@ -1,13 +1,15 @@
 package com.itau.common.library.exception;
 
-public class NegocioException extends RuntimeException {
+import com.itau.common.library.constants.Constants;
 
-    public NegocioException(String message) {
-        super(message);
+public class NegocioException extends BaseException {
+
+    public NegocioException(Constants errorConstant) {
+        super(errorConstant);
     }
 
-    public NegocioException(String message, Throwable cause) {
-        super(message, cause);
+    public NegocioException(Constants errorConstant, Throwable cause) {
+        super(errorConstant, cause);
     }
 }
 

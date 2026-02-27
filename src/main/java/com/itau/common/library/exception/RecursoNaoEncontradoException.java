@@ -1,13 +1,15 @@
 package com.itau.common.library.exception;
 
-public class RecursoNaoEncontradoException extends RuntimeException {
+import com.itau.common.library.constants.Constants;
 
-    public RecursoNaoEncontradoException(String message) {
-        super(message);
+public class RecursoNaoEncontradoException extends BaseException {
+
+    public RecursoNaoEncontradoException(Constants errorConstant) {
+        super(errorConstant);
     }
 
-    public RecursoNaoEncontradoException(String resourceName, String fieldName, Object fieldValue) {
-        super(String.format("%s não encontrado(a) com %s: '%s'", resourceName, fieldName, fieldValue));
+    public RecursoNaoEncontradoException(Constants errorConstant, Throwable cause) {
+        super(errorConstant, cause);
     }
 }
 
